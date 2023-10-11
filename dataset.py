@@ -84,7 +84,7 @@ for instance in data_original:
     output_dict["instruction"] = instruction
     output_dict["input"] = instance["input"]
     output_dict["output"] = instance["output"]
-    #output_dict["answer"] = instance["answer"]
+    output_dict["answer"] = instance["output"]
     
     data_converted.append(output_dict)
 
