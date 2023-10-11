@@ -222,8 +222,6 @@ def train(
     model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
     
 ######################################## Dataset creation and training ########################################
-    frac_test=0.2
-    val_set_size=int(frac_test*train_data)
     #if val_set_size > 0:
     #    ###Train/val split
     #    train_val=Train[:-val_set_size]
