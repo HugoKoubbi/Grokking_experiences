@@ -22,13 +22,14 @@ from peft import (
 )
 from transformers import GPT2Tokenizer, GPT2Model
 
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+torch.set_default_dtype(torch.float64)
+
 from utils.prompter import Prompter
 
 
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-torch.set_default_dtype(torch.float64)
-print(f"Using {device}")
 
+################################### Train ###################################
 def train(
     # model/data params
     base_model: str = "gpt2",
@@ -36,12 +37,13 @@ def train(
     output_dir: str = "./weights",
     
     # training hyperparams
-    batch_size: int = 128,
-    micro_batch_size: int = 16,
+    batch_size: int = 8,
+    micro_batch_size: int = 4,
     num_epochs: int = 1,
     learning_rate: float = 3e-4,
+    weight_decay: float= 1e-2,
     cutoff_len: int = 512,
-    val_set_size: int = 0, # we don't need val in our case.
+    val_set_size: int = 1696, # we don't need val in our case.
     
     # lora hyperparams
     lora_r: int = 2,
@@ -93,8 +95,6 @@ def train(
     ), "Please specify a --base_model, e.g. --base_model='decapoda-research/llama-7b-hf'"
     gradient_accumulation_steps = batch_size // micro_batch_size
 
-    prompter = Prompter()
-
     device_map = "auto"
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     ddp = world_size != 1
@@ -120,7 +120,6 @@ def train(
     tokenizer.pad_token_id = 0
     
     tokenizer.padding_side = "left"  # Allow batched inference
-
     def tokenize(prompt, add_eos_token=True):
         result = tokenizer(
             prompt,
@@ -160,6 +159,30 @@ def train(
                 user_prompt_len:
             ]  # could be sped up, probably
         return tokenized_full_prompt
+    
+    #def generate_and_tokenize_prompt(example):
+    #    instruction=example['instruction'] 
+    #    input=example['input']
+    #    output=example['output']
+    #    if instruction!=None:
+    #        txt='Instruction:'+str(instruction)+'\nQuestion:'+str(input)+'\n Answer:'+str(output)+'.'
+    #        m=tokenizer(
+    #        txt,
+    #        truncation=True,
+    #        max_length=cutoff_len,
+    #        padding=False,
+    #        return_tensors=None,)
+    #        return(m)
+    #    else:
+    #        txt='Question:'+str(input)+'\nAnswer:'+str(output)+'.'
+    #        m=tokenizer(
+    #        txt,
+    #        truncation=True,
+    #        max_length=cutoff_len,
+    #        padding=False,
+    #        return_tensors=None,)
+    #        return(m)
+
 
     config = LoraConfig(
         r=lora_r,
@@ -170,6 +193,9 @@ def train(
         task_type="CAUSAL_LM",
     )
     model = get_peft_model(model, config)
+
+    if data_path.endswith(".json") or data_path.endswith(".jsonl"):
+       data = load_dataset("json", data_files=data_path)
 
 
 ############################################# Recovering from checkpoint #############################################
@@ -196,6 +222,20 @@ def train(
     model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
     
 ######################################## Dataset creation and training ########################################
+    frac_test=0.2
+    val_set_size=int(frac_test*train_data)
+    #if val_set_size > 0:
+    #    ###Train/val split
+    #    train_val=Train[:-val_set_size]
+    #    train_val=[generate_and_tokenize_prompt(x) for x in train_val]
+    #    train_val=train_val.numpy()
+    #    train_val=torch.tensor(train_val)
+    
+    #    train_data = Train[-val_set_size:]
+    #    train_data=[generate_and_tokenize_prompt(x) for x in train_data]
+    #    train_data=train_data.numpy()
+    #    train_data=torch.tensor(train_data)
+
     if val_set_size > 0:
         train_val = data["train"].train_test_split(
             test_size=val_set_size, shuffle=True, seed=42
@@ -203,12 +243,12 @@ def train(
         train_data = (
             train_val["train"].shuffle().map(generate_and_tokenize_prompt)
         )
-        val_data = (
+        val_data = ( 
             train_val["test"].shuffle().map(generate_and_tokenize_prompt)
         )
     else:
         train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = None
+        val_data = None    
 
     if not ddp and torch.cuda.device_count() > 1:
         # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
@@ -220,11 +260,12 @@ def train(
     trainer = transformers.Trainer(
         model=model,
         train_dataset=train_data,
-        eval_dataset=val_data,
+        eval_dataset=train_val,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=micro_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=100,
+            weight_decay=weight_decay,
             num_train_epochs=num_epochs,
             learning_rate=learning_rate,
             fp16=True,
