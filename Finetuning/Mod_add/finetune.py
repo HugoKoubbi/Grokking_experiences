@@ -29,42 +29,6 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 torch.set_default_dtype(torch.float64)
 print(f"Using {device}")
 
-p=103
-fraction=0.8
-GEN_DATA=True
-if GEN_DATA:
-    equals_token = p
-    x, y = torch.meshgrid(torch.arange(p), torch.arange(p), indexing='ij')
-    x = x.flatten()
-    y = y.flatten()
-        # plus = torch.ones(x.shape, dtype=torch.int64) * plus_token
-    equals = torch.ones(x.shape, dtype=torch.int64) * equals_token
-    prompts = torch.stack([x, y, equals], dim=1).to(device)
-    answers = ((x + y) % p).to(device)
-
-    data = torch.utils.data.TensorDataset(prompts, answers)
-    train, test = torch.utils.data.random_split(data, 
-                                    [int(fraction * len(data)),
-                                    len(data) - int(fraction * len(data))
-                                    ])
-
-    Train=[]
-    for inputs, labels in train:
-        inputs=inputs.cpu()
-        inputs=inputs.numpy()
-        a,b,_=inputs
-        labels=labels.cpu()
-        labels=labels.numpy()
-        Train.append({'instruction': 'What is '+str(a)+'+'+str(b)+' modulo '+str(p)+'?' , 'output': str(labels)})
-    Test=[]
-    for inputs, labels in test:
-        inputs=inputs.cpu()
-        inputs=inputs.numpy()
-        a,b,_=inputs
-        labels=labels.cpu()
-        labels=labels.numpy()
-        Test.append({'instruction': 'What is '+str(a)+'+'+str(b)+' modulo '+str(p)+'?' , 'output': str(labels)})
-
 def train(
     # model/data params
     base_model: str = "gpt2",
