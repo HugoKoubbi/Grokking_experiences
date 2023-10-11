@@ -7,7 +7,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ################ generate input and output data #####################
 p=103
-fraction=0.8
+fraction=1.0
 GEN_DATA=True
 if GEN_DATA:
     equals_token = p
