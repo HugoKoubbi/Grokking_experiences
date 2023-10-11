@@ -1,0 +1,49 @@
+resources:
+  cloud: aws  
+  use_spot: true
+  instance_type: g5.xlarge
+
+
+file_mounts:
+  /data:
+    name: fine.tunning.mod_add# Make sure this name is unique or you own this bucket. If it does not exists, SkyPilot will try to create a bucket with this name.
+    store: s3  
+    mode: MOUNT
+
+
+setup: |
+  conda create -q python=3.8 -n llm-tuner -y
+  conda activate llm-tuner
+
+  [ ! -d llm_tuner ] && git clone https://github.com/HugoKoubbi/Grokking_experiences.git llm_tuner
+  echo 'Installing dependencies...'
+  pip install -r llm_tuner/requirements.lock.txt
+  
+  
+  echo 'Dependencies installed.'
+
+
+run: |
+  conda activate llm-tuner
+  cd llm-tuner
+  cd FineTuning 
+  cd Mod_add
+  python dataset.py
+  python finetune.py \
+    --base_model 'gpt2s' \
+    --data_path 'dataset.json' \
+    --output_dir './weights' \
+    --batch_size 4 \
+    --micro_batch_size 4 \
+    --num_epochs 1000 \
+    --weight_decay 0.01 \
+    --learning_rate 1e-4 \
+    --cutoff_len 512 \
+    --val_set_size 0 \
+    --lora_r 2 \
+    --lora_alpha 2 \
+    --lora_dropout 0.05 \
+    --lora_target_modules '[q_proj,v_proj,k_proj,o_proj]' \
+  python app.py \
+    --base_model 'gpt2s' \
+    --lora_weights './weights' \
