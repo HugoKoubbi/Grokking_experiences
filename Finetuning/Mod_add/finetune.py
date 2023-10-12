@@ -259,7 +259,7 @@ def train(
     trainer = transformers.Trainer(
         model=model,
         train_dataset=train_data,
-        eval_dataset=train_val,
+        eval_dataset=val_data,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=micro_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
