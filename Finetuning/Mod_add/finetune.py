@@ -193,7 +193,7 @@ def train(
         bias="none",
         task_type="CAUSAL_LM",
     )
-    model = get_peft_model(model, config, 'default')
+    model = get_peft_model(model, config)
 
     if data_path.endswith(".json") or data_path.endswith(".jsonl"):
        data = load_dataset("json", data_files=data_path)
