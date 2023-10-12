@@ -21,6 +21,7 @@ from peft import (
     set_peft_model_state_dict,
 )
 from transformers import GPT2Tokenizer, GPT2Model
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 torch.set_default_dtype(torch.float64)
@@ -113,9 +114,11 @@ def train(
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    model = GPT2Model.from_pretrained(base_model)
+    #model = GPT2Model.from_pretrained(base_model)
+    #tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    model = AutoModelForCausalLM.from_pretrained("gpt2")
 
     tokenizer.pad_token_id = 0
     
