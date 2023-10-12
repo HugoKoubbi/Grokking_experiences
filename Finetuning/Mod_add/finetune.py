@@ -28,6 +28,7 @@ torch.set_default_dtype(torch.float64)
 
 from utils.prompter import Prompter
 
+prompter = Prompter()
 
 
 ################################### Train ###################################
@@ -114,7 +115,6 @@ def train(
 
     #model = GPT2Model.from_pretrained(base_model)
     #tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
     model = AutoModelForCausalLM.from_pretrained("gpt2")
 
