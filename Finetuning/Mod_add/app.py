@@ -39,8 +39,6 @@ def main(
     if device == "cuda":
         model = AutoModelForCausalLM.from_pretrained(
             base_model,
-            load_in_8bit=load_8bit,
-            torch_dtype=torch.float16,
             device_map="auto",
         )
         model = PeftModel.from_pretrained(
