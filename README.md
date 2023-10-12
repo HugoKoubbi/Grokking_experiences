@@ -4,8 +4,8 @@ In this repo, we reproduce some experiments about grokking phenomenon. We reprod
 
 ### The hierarchy of files and their uses:
 
-* gaussian/laplace
-  * fig: finetuning folder, all the code needed to do fine-tuning
+  * Finetuning: finetuning folder, all the code needed to do fine-tuning in gpt2
+  * finetuning_custom: finetuning folder, all the code needed to do fine-tuning in small and custom models
   * Mod_add: code to reproduce the experiment on a 2-layer transformers network, to see grokking on the problem of modular additio 
   * Parking: code to reproduce the experiment on a 2-layer transformers network, to see grokking on the problem of parking
 
