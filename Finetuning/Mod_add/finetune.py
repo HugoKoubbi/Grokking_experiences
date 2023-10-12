@@ -25,6 +25,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 torch.set_default_dtype(torch.float64)
+print(device)
 
 from utils.prompter import Prompter
 
