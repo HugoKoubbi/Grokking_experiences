@@ -6,7 +6,8 @@ import gradio as gr
 import torch
 import transformers
 from peft import PeftModel
-from transformers import GenerationConfig, GPT2Tokenizer, GPT2Model
+from transformers import GenerationConfig, GPT2Tokenizer, GPT2Model, AutoTokenizer, AutoModelForCausalLM
+
 
 
 from utils.callbacks import Iteratorize, Stream
@@ -34,9 +35,9 @@ def main(
 
 
     prompter = Prompter()
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    tokenizer = AutoTokenizer.from_pretrained('gpt2')
     if device == "cuda":
-        model = GPT2Model.from_pretrained(
+        model = AutoModelForCausalLM.from_pretrained(
             base_model,
             load_in_8bit=load_8bit,
             torch_dtype=torch.float16,
@@ -49,7 +50,7 @@ def main(
             device_map={'': 0},
         )
     else:
-        model = GPT2Model.from_pretrained(
+        model =AutoModelForCausalLM.from_pretrained(
             base_model, device_map={"": device}, low_cpu_mem_usage=True
         )
         model = PeftModel.from_pretrained(
