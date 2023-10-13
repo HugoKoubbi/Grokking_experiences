@@ -248,9 +248,9 @@ def train(
         val_data = ( 
             train_val["test"].shuffle().map(generate_and_tokenize_prompt)
         )
-    else:
-        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = None    
+    #else:
+     #   train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
+      #  val_data = None    
 
     if not ddp and torch.cuda.device_count() > 1:
         # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
@@ -273,9 +273,9 @@ def train(
             fp16=False,
             logging_steps=10,
             optim="adamw_torch",
-            evaluation_strategy="steps" if val_set_size > 0 else "no",
+            evaluation_strategy="steps", #if val_set_size > 0 else "no",
             save_strategy="steps",
-            eval_steps=200 if val_set_size > 0 else None,
+            eval_steps=100,# if val_set_size > 0 else None,
             save_steps=50,
             output_dir=output_dir,
             save_total_limit=10,
