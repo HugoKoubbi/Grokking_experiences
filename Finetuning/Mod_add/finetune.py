@@ -65,6 +65,7 @@ def train(
     wandb_run_name: str = "",
     wandb_watch: str = "",  # options: false | gradients | all
     wandb_log_model: str = "",  # options: false | true
+    wandb_api_key: str = '',
     resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
 ):
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
