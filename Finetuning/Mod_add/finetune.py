@@ -114,7 +114,8 @@ def train(
         os.environ["WANDB_WATCH"] = wandb_watch
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
-
+    if len(wandb_api_key) > 0:
+        os.environ['WANDB_API_KEY']=wandb_api_key
     #model = GPT2Model.from_pretrained(base_model)
     #tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
